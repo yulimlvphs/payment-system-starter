@@ -12,7 +12,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     @Query("SELECT ci FROM CartItem ci JOIN FETCH ci.product WHERE ci.member.id = :memberId")
     List<CartItem> findByMemberId(@Param("memberId") Long memberId);
 
-    // 중복 여부 확인
+    // 이미 존재하는 MemberId + ProductId 조합인지를 확인
     Optional<CartItem> findByMember_IdAndProduct_Id(Long memberId, Long productId);
 
     @Modifying //@Query에 작성한 쿼리가 조회용 SELECT가 아니라 데이터를 변경하는 UPDATE·DELETE 쿼리라고 Spring Data JPA에 알려주는 표시
@@ -24,4 +24,12 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     // JOIN FETCH : 주문서에서 상품명/가격을 써야 하므로 n+1 방지
     @Query("select ci from CartItem ci JOIN FETCH ci.product where ci.id IN :ids AND ci.member.id = :memberId")
     List<CartItem> findByIdInAndMember_IdWithProduct(@Param("ids") List<Long> ids, @Param("memberId") Long memberId);
+
+    // 주문 생성 완료 직후 "주문한 장바구니 아이템만" 일괄 삭제
+    // - member.id 조건: 남의 cartItemId를 섞어 보내도 삭제되지 않게 하는 소유권 검증
+    // - IN절 일괄 삭제: 개별 deleteByIdAndMember_Id를 주문한 아이템 수만큼 반복 호출하는 대신 한 번의 쿼리로 처리 (N번 쿼리 → 1번)
+    // - 반환 int: 실제로 삭제된 행 수
+    @Modifying
+    @Query("delete from  CartItem c where c.id in :ids AND c.member.id = :memberId")
+    int deleteAllByIdInAndMemberId(@Param("ids") List<Long> ids, @Param("memberId") Long memberId);
 }
