@@ -46,8 +46,11 @@ public class CartService {
 
     @Transactional
     public void updateQuantity(Long memberId, Long itemId, int quantity) {
+        // 만약에 item과 memberId를 동시에 일치하는 항목을 처음부터 쿼리로 DB에서 가지고 온다면 별도의 메서드를 하나 더 정의해야하는데 findById는 기본 제공 메서드
         CartItem item = cartItemRepository.findById(itemId)
                 .filter(ci -> ci.getMemberId().equals(memberId))
+                //왜 소유권 불일치도 CART_ITEM_NOT_FOUND일까??
+                //다른 회원의 장바구니 상품이 존재하더라도 요청자에게는 없는 것처럼 처리하는 것이 일반적이다.
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
         item.changeQuantity(quantity);
     }
@@ -70,9 +73,14 @@ public class CartService {
         return cartItemRepository.findByIdInAndMember_IdWithProduct(cartItemIds, memberId);
     }
 
+    // 주문완료 후 장바구니 비우기
+    // 즉, 주문하기 전에:
+    // 요청한 장바구니 상품이 모두 존재하는가?, 모두 현재 회원의 것인가?, 주문 가능한 상품인가?, 재고가 충분한가?
+    // 를 이미 검증했다면, 주문 후 장바구니 삭제는 부가적인 정리 작업이다.
     public void clearCartItems(List<Long> orderedItemIds, Long memberId) {
         int deleted = cartItemRepository.deleteAllByIdInAndMemberId(orderedItemIds, memberId);
         if (deleted != orderedItemIds.size()) {
+            // 오류를 발생시키지 않는 이유는 여기서 오류가 발생하면 이 메서드를 쓰는 CartFacade의 메서드의 트랜젝션이 모두 롤백될 수 있음. + 이 기능은 비주류?의 기능임.
             log.warn("장바구니 삭제 불일치: expected={}, actual={}, memberId={}",
                     orderedItemIds.size(), deleted, memberId);
         }

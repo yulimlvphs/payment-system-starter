@@ -1,7 +1,5 @@
 package com.sparta.paymentsystem.domain.order.facade;
-
 import com.sparta.paymentsystem.domain.cart.entity.CartItem;
-import com.sparta.paymentsystem.domain.cart.facade.CartFacade;
 import com.sparta.paymentsystem.domain.cart.service.CartService;
 import com.sparta.paymentsystem.domain.member.entity.Member;
 import com.sparta.paymentsystem.domain.member.service.MemberService;
@@ -13,7 +11,6 @@ import com.sparta.paymentsystem.domain.order.entity.Order;
 import com.sparta.paymentsystem.domain.order.entity.OrderItem;
 import com.sparta.paymentsystem.domain.order.service.OrderService;
 import com.sparta.paymentsystem.domain.payment.entity.Payment;
-import com.sparta.paymentsystem.domain.payment.entity.PaymentStatus;
 import com.sparta.paymentsystem.domain.payment.service.PaymentService;
 import com.sparta.paymentsystem.domain.product.entity.Product;
 import com.sparta.paymentsystem.global.error.BusinessException;
@@ -21,10 +18,10 @@ import com.sparta.paymentsystem.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 
 @Component
 @RequiredArgsConstructor
@@ -84,6 +81,7 @@ public class OrderFacade {
             Product product = cartItem.getProduct();
             product.deductStock(cartItem.getQuantity());
 
+            // cartItems들이 주문할 아이템이 되는 순간
             OrderItem orderItem = new OrderItem(
                     product,
                     product.getPrice(),
@@ -136,6 +134,7 @@ public class OrderFacade {
 
     private List<CartItem> getValidateCartItems(Long memberId, List<Long> cartItemIds) {
         // cartItemIds가 비어있으면 "전체 장바구니", 아니면 "선택된 아이템만" 조회
+        // cart에 관한 것(카드 데이터 조회)는 cart의 것이기 때문에 cartService를 사용한다.
         List<CartItem> cartItems = cartItemIds.isEmpty()
                 ? cartService.findCartEntities(memberId)
                 : cartService.findCartEntitiesByIds(memberId, cartItemIds);

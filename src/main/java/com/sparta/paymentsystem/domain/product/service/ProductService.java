@@ -34,6 +34,7 @@ public class ProductService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
+    // DTO에 정적 팩토리 메서드와 그냥 이런 변환 함수의 차이점은 DTO를 사용하면 DTO가 Entity를 알아야한다는 단점이 존재
     private ProductResponse toResponse(Product product) {
         return new ProductResponse(
                 product.getId(),

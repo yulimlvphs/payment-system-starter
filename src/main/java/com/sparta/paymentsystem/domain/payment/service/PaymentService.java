@@ -26,7 +26,8 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
-    // 주문 단건 조회 화면에서 결제 ID 조회
+    // 주문 ID(orderId)를 가지고, 그 주문에 연결된 결제의 ID(paymentId)를 찾아라.
+    // 주문에서 결제 관련 작업으로 넘어갈 때 필요하다. 예를 들어 사용자가 주문 상세 페이지를 보고 있다가 [결제 취소], [결제 정보 확인] 같은 작업을 하기 위해서는 해당 주문의 Payment를 찾아야함.
     public Optional<Long> findPaymentIdByOrderId(Long orderId) {
         return paymentRepository.findIdByOrderId(orderId);
     }
