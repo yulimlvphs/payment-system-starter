@@ -58,6 +58,10 @@ public class Payment extends BaseTimeEntity { //돈이 어떻게 결제됐는가
         changeStatus(PaymentStatus.FAILED);
     }
 
+    public void markAsCancelled() {
+        changeStatus(PaymentStatus.CANCELLED);
+    }
+
     // 결제 상태 변경 로직
     private void changeStatus(PaymentStatus newStatus) {
         if (!this.status.canTransitTo(newStatus)) {
