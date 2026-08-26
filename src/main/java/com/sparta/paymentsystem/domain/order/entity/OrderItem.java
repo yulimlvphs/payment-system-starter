@@ -49,4 +49,8 @@ public class OrderItem extends BaseTimeEntity { //구매가 확정된 상품 기
         return orderPrice * quantity;
     }
 
+    public Long getProductId() {
+        return this.product.getId();
+    }
+
 }
